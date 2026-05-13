@@ -6,6 +6,7 @@ vendor
 .vscode
 *.tfstate
 *.tfstate.backup
+*.lock.hcl
 *.out
 .terragrunt-cache
 .bundle

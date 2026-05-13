@@ -1,5 +1,5 @@
 include "root" {
-  path = find_in_parent_folders()
+  path = find_in_parent_folders("root.hcl")
 }
 
 locals {
@@ -12,6 +12,11 @@ terraform {
 
 dependency "vpc" {
   config_path = "../vpc"
+
+  mock_outputs = {
+    vpc_id = "vpc-00000000000000000"
+  }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "show", "destroy"]
 }
 
 inputs = {

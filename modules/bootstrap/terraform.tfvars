@@ -13,5 +13,5 @@ tags = {
   Environment = "lab"
   ManagedBy   = "terraform"
   Purpose     = "tfstate-bootstrap"
-  Owner       = "CY3-4"
+  Owner       = "Maks Shestalyuk"
 }
