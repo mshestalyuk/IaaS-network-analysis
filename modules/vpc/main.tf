@@ -116,3 +116,11 @@ resource "aws_iam_role_policy" "flow_logs" {
     }]
   })
 }
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+  tags              = { Name = "${var.project}-s3-endpoint" }
+}

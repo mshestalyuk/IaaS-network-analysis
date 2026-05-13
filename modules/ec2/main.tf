@@ -47,7 +47,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [var.web_sg_id]
   key_name               = aws_key_pair.lab.key_name
 
-  user_data = file("${path.module}/../../scripts/user-data/web-server.sh")
+  user_data = var.web_user_data 
 
   tags = { Name = "${var.project}-web" }
 }
@@ -62,7 +62,6 @@ resource "aws_instance" "db" {
   vpc_security_group_ids = [var.db_sg_id]
   key_name               = aws_key_pair.lab.key_name
 
-  user_data = file("${path.module}/../../scripts/user-data/db-server.sh")
-
+  user_data = var.db_user_data
   tags = { Name = "${var.project}-db" }
 }
