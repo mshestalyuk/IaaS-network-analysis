@@ -44,4 +44,5 @@ inputs = {
   # don't resolve from inside .terragrunt-cache
   web_user_data = file("${get_repo_root()}/scripts/user-data/web-server.sh")
   db_user_data  = file("${get_repo_root()}/scripts/user-data/db-server.sh")
+  bastion_user_data = file("${get_repo_root()}/scripts/user-data/bastion.sh")
 }
