@@ -90,6 +90,14 @@ resource "aws_security_group" "db" {
     security_groups = [aws_security_group.bastion.id]
   }
 
+  ingress {
+      description = "ICMP from within VPC"
+      from_port   = -1
+      to_port     = -1
+      protocol    = "icmp"
+      cidr_blocks = [var.vpc_cidr]
+    }
+
   egress {
     from_port   = 0
     to_port     = 0
