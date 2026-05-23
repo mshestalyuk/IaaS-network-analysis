@@ -12,15 +12,13 @@ retry() {
   done
 }
 
-# Traffic-generation 
+# Traffic-generation + analysis toolkit for Etap 2/3.
+# Note: curl is already present (curl-minimal); do NOT add "curl" — it conflicts.
 retry dnf install -y \
   nmap \
   bind-utils \
   httpd-tools \
   tcpdump \
-  curl \
-  iputils \
-  traceroute \
-  net-tools
+  traceroute
 
 echo "=== bastion user-data finished: $(date) ==="
