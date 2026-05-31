@@ -11,3 +11,4 @@ variable "db_sg_id" { type = string }
 variable "ssh_public_key" { type = string }
 variable "web_user_data" { type = string }
 variable "db_user_data" { type = string }
+variable "bastion_user_data" { type = string }

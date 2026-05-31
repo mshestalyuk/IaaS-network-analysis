@@ -1,0 +1,136 @@
+############################################################
+#  Etap 2 - Network Traffic Generation
+#  Started: Sat May 23 11:45:58 UTC 2026
+#  Web target: 10.0.1.155   DB target: 10.0.2.103
+############################################################
+
+------------------------------------------------------------
+=== [HTTP/HTTPS] traffic generation ===
+[*] Plain HTTP GET requests to web server (port 80)
+    request 1  ->  HTTP 200  (0.003094s)
+    request 2  ->  HTTP 200  (0.001091s)
+    request 3  ->  HTTP 200  (0.001742s)
+    request 4  ->  HTTP 200  (0.001197s)
+    request 5  ->  HTTP 200  (0.001096s)
+
+[*] HTTP load test with ApacheBench — 100 requests, concurrency 10
+    Complete requests:      100
+    Failed requests:        0
+    Requests per second:    6450.78 [#/sec] (mean)
+    Transfer rate:          2374.95 [Kbytes/sec] received
+
+[*] HTTPS request to an external site (encrypted — TLS handshake in pcap)
+    https://example.com  ->  HTTP 200
+
+[*] HTTPS attempt to web server (port 443 open in SG, no TLS listener)
+    https://10.0.1.155  ->  000
+    connection refused / timeout  (expected — no HTTPS service)
+=== [HTTP/HTTPS] done ===
+
+------------------------------------------------------------
+=== [SSH] traffic generation ===
+[*] SSH sessions to WEB server (10.0.1.155)
+    web $ hostname  ->  FAILED (check 'ssh -A' agent forwarding)
+    web $ uptime  ->  FAILED (check 'ssh -A' agent forwarding)
+    web $ df -h /  ->  FAILED (check 'ssh -A' agent forwarding)
+    web $ id  ->  FAILED (check 'ssh -A' agent forwarding)
+
+[*] SSH sessions to DB server (10.0.2.103, private subnet)
+    db  $ hostname  ->  FAILED (check agent forwarding)
+    db  $ systemctl is-active mariadb  ->  FAILED (check agent forwarding)
+=== [SSH] done ===
+
+------------------------------------------------------------
+=== [DNS] traffic generation ===
+[*] A-record lookups via default VPC resolver
+    google.com  ->  142.251.14.138
+    amazon.com  ->  98.82.161.185
+    github.com  ->  140.82.121.4
+    wikipedia.org  ->  185.15.59.224
+    cloudflare.com  ->  104.16.133.229
+    pk.edu.pl  ->  149.156.132.5
+
+[*] A-record lookups via external resolver (8.8.8.8)
+    google.com @8.8.8.8  ->  142.251.14.100
+    amazon.com @8.8.8.8  ->  98.87.170.74
+    github.com @8.8.8.8  ->  140.82.121.4
+    wikipedia.org @8.8.8.8  ->  185.15.59.224
+    cloudflare.com @8.8.8.8  ->  104.16.132.229
+    pk.edu.pl @8.8.8.8  ->  149.156.132.5
+
+[*] Other record types
+    MX   10 smtp.google.com.
+    TXT  "uber-domain-verification=58086039-150a-42a4-a4be-b4032921aa0f"
+    AAAA 2a00:1450:4001:c1f::66
+=== [DNS] done ===
+
+------------------------------------------------------------
+=== [ICMP] traffic generation ===
+[*] Ping WEB server (intra-VPC, instance-to-instance)
+    --- 10.0.1.155 ping statistics ---
+    5 packets transmitted, 0 received, 100% packet loss, time 4186ms
+    
+    ping failed — is the ICMP security-group rule applied?
+
+[*] Ping DB server (private subnet)
+    --- 10.0.2.103 ping statistics ---
+    5 packets transmitted, 5 received, 0% packet loss, time 4157ms
+    rtt min/avg/max/mdev = 0.364/0.490/0.897/0.203 ms
+
+[*] Ping external host (8.8.8.8, internet path via IGW)
+    --- 8.8.8.8 ping statistics ---
+    5 packets transmitted, 5 received, 0% packet loss, time 4156ms
+    rtt min/avg/max/mdev = 0.559/0.705/0.755/0.073 ms
+
+[*] traceroute to external host
+    traceroute to 8.8.8.8 (8.8.8.8), 8 hops max, 60 byte packets
+     1  242.14.245.3  1.120 ms 242.14.245.133  0.828 ms  1.060 ms
+     2  * * *
+     3  * 142.251.207.252  0.836 ms  0.822 ms
+     4  * * 192.178.107.13  2.192 ms
+     5  142.250.214.191  1.038 ms 142.250.214.203  0.603 ms 8.8.8.8  0.539 ms
+=== [ICMP] done ===
+
+------------------------------------------------------------
+=== [PORT SCAN] malicious traffic simulation ===
+[*] Reconnaissance from bastion — expect open ports 22/80/443 on web,
+    everything else filtered by the security group (REJECT in Flow Logs).
+
+[*] TCP connect scan of WEB server, ports 1-1000 (this takes ~1 min)
+    Starting Nmap 7.93 ( https://nmap.org ) at 2026-05-23 11:46 UTC
+    Stats: 0:00:00 elapsed; 0 hosts completed (0 up), 1 undergoing Ping Scan
+    Ping Scan Timing: About 100.00% done; ETC: 11:46 (0:00:00 remaining)
+    Nmap scan report for 10.0.1.155
+    Host is up (0.00058s latency).
+    Not shown: 997 filtered tcp ports (no-response)
+    PORT    STATE  SERVICE
+    22/tcp  open   ssh
+    80/tcp  open   http
+    443/tcp closed https
+    
+    Nmap done: 1 IP address (1 host up) scanned in 4.54 seconds
+
+[*] Targeted scan — allowed (22,80,443) vs blocked (3306,8080,21,23)
+    21/tcp   filtered ftp
+    22/tcp   open     ssh
+    23/tcp   filtered telnet
+    80/tcp   open     http
+    443/tcp  closed   https
+    3306/tcp filtered mysql
+    8080/tcp filtered http-proxy
+
+[*] Scan DB server — 22 allowed from bastion, 3306 allowed only from web
+
+[*] Raw connection attempts to closed/filtered ports on web server
+    port 23  ->  closed / filtered
+    port 3389  ->  closed / filtered
+    port 8080  ->  closed / filtered
+    port 9200  ->  closed / filtered
+    port 5432  ->  closed / filtered
+    port 6379  ->  closed / filtered
+=== [PORT SCAN] done ===
+
+############################################################
+#  All traffic generated. Finished: Sat May 23 11:46:58 UTC 2026
+#  Now stop the capture on the web server (stop-capture.sh).
+############################################################

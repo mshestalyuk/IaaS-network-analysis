@@ -34,6 +34,8 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [var.bastion_sg_id]
   key_name               = aws_key_pair.lab.key_name
 
+  user_data = var.bastion_user_data
+
   tags = { Name = "${var.project}-bastion" }
 }
 
